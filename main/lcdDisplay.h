@@ -19,9 +19,9 @@
 //Сигнал подсветки BLINK дисплея
 #define DISPLAY_PIN_BLK   15  // Подсветка (опционально)
 //Ширина дисплея в пикселях
-#define LCD_WIDTH 128
+#define LCD_WIDTH 160
 //Высота дисплея в пикселях
-#define LCD_HEIGHT 160
+#define LCD_HEIGHT 128
 //Используемый интерфейс
 #define LCD_HOST SPI2_HOST
 

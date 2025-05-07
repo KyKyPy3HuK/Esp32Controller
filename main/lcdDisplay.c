@@ -32,7 +32,7 @@ void InitDisplay(esp_lcd_panel_handle_t *panel_handle){
 
     // 3. Кастомные команды инициализации
     static const uint8_t colmod_data[] = {0x05};  // RGB565
-    static const uint8_t madctl_data[] = {0xC0};  // Ориентация
+    static const uint8_t madctl_data[] = {0x60};  // Ориентация
 
     static const st7735_lcd_init_cmd_t custom_init_cmds[] = {
          {ST7735_SWRESET, NULL, 0, 150},
