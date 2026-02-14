@@ -22,6 +22,8 @@
 #define LCD_WIDTH 160
 //Высота дисплея в пикселях
 #define LCD_HEIGHT 128
+//Частота SPI 
+#define DISPLAY_SPI_SPEED_MHZ 40
 //Используемый интерфейс
 #define LCD_HOST SPI2_HOST
 

@@ -7,20 +7,20 @@ void InitDisplay(esp_lcd_panel_handle_t *panel_handle){
     // 1. Настройка SPI
     spi_bus_config_t buscfg = {
         .miso_io_num = -1,
-        .mosi_io_num = 23,
-        .sclk_io_num = 18,
+        .mosi_io_num = DISPLAY_PIN_MOSI,
+        .sclk_io_num = DISPLAY_PIN_SCLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = LCD_WIDTH * LCD_HEIGHT * 2 + 8,
+        .max_transfer_sz = LCD_WIDTH * LCD_HEIGHT * 2,
     };
     spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO);
 
     // 2. Настройка интерфейса дисплея
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_io_spi_config_t io_config = {
-        .dc_gpio_num = 2,
-        .cs_gpio_num = 5,
-        .pclk_hz = 40 * 1000 * 1000, // 5 MHz
+        .dc_gpio_num = DISPLAY_PIN_DC,
+        .cs_gpio_num = DISPLAY_PIN_CS,
+        .pclk_hz = DISPLAY_SPI_SPEED_MHZ * 1000 * 1000, // 40 MHz
         .spi_mode = 0,
         .lcd_cmd_bits = 8,
         .lcd_param_bits = 8,
@@ -59,7 +59,7 @@ void InitDisplay(esp_lcd_panel_handle_t *panel_handle){
 
     //Кофигурация панели
     esp_lcd_panel_dev_config_t panel_config = {
-        .reset_gpio_num = 4,
+        .reset_gpio_num = DISPLAY_PIN_RST,
         .rgb_endian = LCD_RGB_ENDIAN_BGR,
         .bits_per_pixel = 16,
         .vendor_config = &vendor_config,
