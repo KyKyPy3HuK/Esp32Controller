@@ -9,7 +9,7 @@ typedef struct {
 	uint8_t isActivated;
 	//Текст
 	char* text;
-}MenuItem;
+} MenuItem;
 
 //Структура Меню
 typedef struct {
@@ -19,7 +19,7 @@ typedef struct {
 	int focusItemIndex;
 	//Элементы
 	MenuItem* items;
-}Menu;
+} Menu;
 
 void MenuInit(Menu* menu);
 

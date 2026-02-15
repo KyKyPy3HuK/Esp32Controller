@@ -51,7 +51,7 @@ void draw_rect_to_buffer(int x, int y, int w, int h, uint16_t color);
 
 void drawGradientRectToBuffer(int x, int y, int w, int h, uint16_t srcColor, uint16_t dstColor, int gradStartX, int gradStartY, int gradEndX, int gradEndY);
 
-void DrawString(char* string, Font8 font, int x, int y, uint16_t color);
+void DrawString(char* string, Font8* font, int x, int y, uint16_t color);
 
 void InitFont(Font8* font, uint8_t* fontData, int fontDataLen);
 

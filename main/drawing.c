@@ -139,7 +139,8 @@ void drawGradientRectToBuffer(int x, int y, int w, int h,
 /**
  * Вывод строки на буфер
  */
-void DrawString(char* string, Font8 font, int x, int y, uint16_t color){
+//TODO Подумать можно ли Font* заменить на Font
+void DrawString(char* string, Font8* font, int x, int y, uint16_t color){
 
     uint32_t charNum = 0;
     uint8_t curChar = string[charNum];
@@ -183,7 +184,7 @@ void DrawString(char* string, Font8 font, int x, int y, uint16_t color){
         {
             for (uint32_t col = offsetX; col < boundX; col++)
             {
-                curFontData = font.fontData[baseAdr + relX] >> relY;
+                curFontData = font->fontData[baseAdr + relX] >> relY;
                 curPixel = curFontData & 0x1;
                 if (curPixel == 1) {
                     _frame_buffer[_currentBufferNum][row * BUFFER_WIDTH + col] = color;
