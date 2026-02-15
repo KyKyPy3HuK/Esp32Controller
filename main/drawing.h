@@ -1,8 +1,9 @@
 #ifndef __DRAWING_H__
-#define __DRAWIN_H__
+#define __DRAWING_H__
 
 #include "lcdDisplay.h"
 #include "math.h"
+
 #define BUFFER_WIDTH LCD_WIDTH
 #define BUFFER_HEIGHT LCD_HEIGHT
 #define BUFFER_BYTES_PER_PIXEL 2

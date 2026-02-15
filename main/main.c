@@ -6,6 +6,7 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "MainMenuScene.h"
+#include "SnakeGameScene.h"
 #include "menu8x8_font.h"
 #include "utils.h"
 
