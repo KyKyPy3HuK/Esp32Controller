@@ -5,70 +5,25 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "esp_timer.h"
-#include "string.h"
-
-#include "pinConfig.h"
-#include "lcdDisplay.h"
-#include "utils.h"
-#include "drawing.h"
+#include "MainMenuScene.h"
 #include "menu8x8_font.h"
-#include "menu.h"
+#include "utils.h"
 
 
 #define DEBOUNCE_DELAY_MS 200
-
-
-// Структура для хранения состояния кнопок
-typedef struct {
-    int pin;
-    uint64_t last_press_time;
-} Button;
 
 Button buttons[] = {
     {PIN_BTN_UP, 0},
     {PIN_BTN_DOWN, 0},
     {PIN_BTN_LEFT, 0},
-    {PIN_BTN_RIGHT, 0}
+    {PIN_BTN_RIGHT, 0},
+    {PIN_BTN_FNC_RIGHT, 0},
+    {PIN_BTN_FNC_LEFT, 0}
 };
 
-volatile uint8_t red = 0;
-volatile uint8_t green = 0;
-volatile uint8_t blue = 0;
-volatile Menu menu;
+volatile GlobalContext globalContext;
+volatile SceneManager sceneManager;
 
-
-void ColorInc(void){
-    switch (MenuGetFocusItemIndex(menu))
-    {
-    case 0:
-        red++;
-        break;
-    case 1:
-        green++;
-        break;
-    case 2:
-        blue++;
-        break;
-    default:
-        break;
-    }
-}
-void ColorDec(void){
-    switch (MenuGetFocusItemIndex(menu))
-    {
-    case 0:
-        red--;
-        break;
-    case 1:
-        green--;
-        break;
-    case 2:
-        blue--;
-        break;
-    default:
-        break;
-    }
-}
 
 /**
  * Обработчик кнопок
@@ -84,21 +39,7 @@ void IRAM_ATTR button_isr_handler(void* arg) {
     
     btn->last_press_time = current_time;
     
-    // Определяем какая кнопка нажата
-    switch (btn->pin) {
-        case PIN_BTN_UP:
-            MenuPrevItem(&menu);
-            break;
-        case PIN_BTN_DOWN:
-            MenuNextItem(&menu);
-            break;
-        case PIN_BTN_LEFT:
-        ColorDec();
-            break;
-        case PIN_BTN_RIGHT:
-        ColorInc();
-            break;
-    }
+    SceneManagerHandleInput(globalContext.sceneManager, btn->pin);
 }
 
 void GpioConfig(void) {
@@ -107,7 +48,9 @@ void GpioConfig(void) {
         .pin_bit_mask = (1ULL << PIN_BTN_UP) | 
                        (1ULL << PIN_BTN_DOWN) | 
                        (1ULL << PIN_BTN_LEFT) | 
-                       (1ULL << PIN_BTN_RIGHT),
+                       (1ULL << PIN_BTN_RIGHT) |
+                       (1ULL << PIN_BTN_FNC_LEFT) | 
+                       (1ULL << PIN_BTN_FNC_RIGHT),
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -122,62 +65,31 @@ void GpioConfig(void) {
     }
 }
 
-void MenuConfig(void){
-    MenuItem rMenuItem;
-    MenuItemInit(&rMenuItem, "Красный канал");
-    MenuItem gMenuItem;
-    MenuItemInit(&gMenuItem,"Зеленый канал");
-    MenuItem bMenuItem;
-    MenuItemInit(&bMenuItem, "Синий канал");
-    MenuAddItem(&menu, rMenuItem);
-    MenuAddItem(&menu, gMenuItem);
-    MenuAddItem(&menu, bMenuItem);
-}
-
-void DrawMenu(int xPos, int yPos, Font8 font, uint16_t colorBase, uint16_t colorSelected){
-    for (int i = 0; i < menu.itemsCount; i++)
-	{
-		//Вывод текущего пункта меню (на который указвает курсор)
-		if (i == menu.focusItemIndex)
-		{
-            DrawString(menu.items[i].text, font, xPos ,i * 10 + yPos, colorSelected);
-		}
-		else
-		{
-			DrawString(menu.items[i].text,font, xPos ,i * 10 + yPos, colorBase);
-		}
-        if (menu.items[i].isActivated == 1)
-        {
-            DrawString("v",font,xPos + (8 * strlen(menu.items[i].text)), i * 10 + yPos, colorBase);
-        }
-        
-	}
-}
-
-
 void app_main() {
 
     GpioConfig();
-    MenuConfig();
+
     esp_lcd_panel_handle_t panel_handle = NULL;
 
     InitDisplay(&panel_handle);
 
     initDrawingContext(panel_handle);
-    uint16_t color = 0;
 
-    Font8 fontMenu8x8;
-    InitFont(&fontMenu8x8, font_menu8x8,FONT_MENU88_LENGTH);
+    Font8 MainFontMenu8x8;
+    InitFont(&MainFontMenu8x8, font_menu8x8, FONT_MENU88_LENGTH);
     char fpsBuf[10];
     memset(fpsBuf,0,sizeof(fpsBuf));
-    int fps = 0;
     uint32_t curTimeMs = 0;
     uint32_t prevTimeMs = 0;
     uint32_t difTimeMs = 0;
 
-    char redBuf[10];
-    char greenBuf[10];
-    char blueBuf[10];
+    SceneManagerInit(&sceneManager, &globalContext);
+    globalContext.sceneManager = &sceneManager;
+
+    Scene mainMenuScene;
+
+    InitMainMenuScene(&mainMenuScene, &MainFontMenu8x8);
+    SceneManagerPushScene(globalContext.sceneManager, &mainMenuScene);
 
     while (1) {
         prevTimeMs = curTimeMs;
@@ -189,18 +101,8 @@ void app_main() {
 
         // 1. Очистка буфера
         fillBuffer(0);
-
-        DrawString(fpsBuf, fontMenu8x8, 0, 0, 0xffff);
-        DrawString("Colors", fontMenu8x8, 6, 0, 0xffff);
-        DrawMenu(8,8,fontMenu8x8,0xaaaa,0xffff);
-
-        itoa( red, redBuf, 10);
-        itoa( green, greenBuf, 10);
-        itoa( blue, blueBuf, 10);
-        DrawString(redBuf, fontMenu8x8, 140, 8, 0xffff);
-        DrawString(greenBuf, fontMenu8x8, 140, 16, 0xffff);
-        DrawString(blueBuf, fontMenu8x8, 140, 24, 0xffff);
-        draw_rect_to_buffer(0,60,160, 68, toRgb565(red,green,blue));
+        SceneManagerUpdate(globalContext.sceneManager);
+        DrawString(fpsBuf, &MainFontMenu8x8, 0, 0, 0xffff);
 
         // 4. Обновление дисплея
         drawBufferFull();
